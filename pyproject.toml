@@ -1,0 +1,37 @@
+[project]
+name = "semantipy"
+version = "0.1"
+description = "Semantic Compiler"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+dependencies = [
+    "networkx",
+    "astunparse",
+    "typing-extensions",
+    "langchain",
+    "langchain-openai",
+    "python-dotenv",
+    "numpy",
+    "pandas",
+    "jinja2",
+    "colorlog",
+]
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["semantipy"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "llm: marks tests as requiring large language models (deselect with '-m \"not llm\"')",
+]
