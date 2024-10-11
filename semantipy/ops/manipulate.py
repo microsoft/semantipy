@@ -4,8 +4,7 @@ __all__ = ["apply", "resolve", "cast", "diff"]
 
 from typing import TypeVar, Callable, overload
 
-from semantipy.dispatch_utils import semantic_function_dispatch
-from semantipy.semantics import Semantics, Text
+from semantipy.semantics import TextOrSemantics, Text, Semantics, SemanticModel, SemanticType
 from semantipy.renderer import Renderer
 
 from .base import semantipy_op
@@ -16,27 +15,54 @@ SemanticTypeA = TypeVar("SemanticTypeA", bound=Semantics)
 SemanticTypeB = TypeVar("SemanticTypeB", bound=Semantics)
 
 
-@overload
-def apply(s: SemanticTypeA, changes: Semantics, /) -> SemanticTypeA: ...
+class ApplyArgs(SemanticModel):
+    s: TextOrSemantics
+    changes: TextOrSemantics
+    where: TextOrSemantics | None = None
 
 
 @overload
-def apply(s: SemanticTypeA, index: Semantics, changes: Semantics, /) -> SemanticTypeA: ...
+def apply(s: SemanticTypeA, changes: Semantics | str, /) -> SemanticTypeA: ...
 
 
-def _apply_preprocessor(func: Callable, s: Semantics, index_or_changes: Semantics, changes: Semantics | None = None) -> dict:
+@overload
+def apply(s: SemanticTypeA, where: Semantics | str, changes: Semantics | str, /) -> SemanticTypeA: ...
+
+
+@overload
+def apply(s: str, changes: Semantics | str, /) -> Text: ...
+
+
+@overload
+def apply(s: str, where: Semantics | str, changes: Semantics | str, /) -> Text: ...
+
+
+def _apply_preprocessor(func, s, where_or_changes, changes=None) -> ApplyArgs:
     if changes is None:
-        return {"s": s, "changes": index_or_changes}
+        return ApplyArgs(s=s, changes=where_or_changes)
     else:
-        return {"s": s, "index": index_or_changes, "changes": changes}
+        return ApplyArgs(s=s, where=where_or_changes, changes=changes)
 
 
 @semantipy_op(preprocessor=_apply_preprocessor)
-def apply(s: SemanticTypeA, index_or_changes: Semantics, changes: Semantics | None = None, /) -> SemanticTypeA:
+def apply(s, where_or_changes, changes=None, /):
     raise NotImplementedError()
 
 
-@semantipy_op
+class ResolveArgs(SemanticModel):
+    s: TextOrSemantics
+    target_type: type[Semantics]
+
+
+@overload
+def resolve(s: Semantics | str, target_type: type[SemanticTypeA]) -> SemanticTypeA: ...
+
+
+@overload
+def resolve(s: Semantics | str) -> Semantics: ...
+
+
+@semantipy_op(standard_param_type=ResolveArgs)
 def resolve(s: Semantics, target_type: type[SemanticTypeA] | None = None) -> SemanticTypeA:
     """Compute the value of a semantic expression.
 
@@ -50,8 +76,13 @@ def resolve(s: Semantics, target_type: type[SemanticTypeA] | None = None) -> Sem
     raise NotImplementedError()
 
 
-@semantipy_op
-def cast(s: Semantics, target_type: type[SemanticTypeA], renderer: Renderer | None = None) -> SemanticTypeA:
+class CastArgs(SemanticModel):
+    s: TextOrSemantics
+    target_type: type[Semantics]
+
+
+@semantipy_op(standard_param_type=CastArgs)
+def cast(s: Semantics | str, target_type: type[SemanticTypeA]) -> SemanticTypeA:
     """Cast a semantic object to a different type.
     The operation does not change the semantics of the object.
 
@@ -63,6 +94,12 @@ def cast(s: Semantics, target_type: type[SemanticTypeA], renderer: Renderer | No
     raise NotImplementedError()
 
 
-@semantipy_op
-def diff(s: Semantics, t: Semantics) -> Semantics:
+class DiffArgs(SemanticModel):
+    s: TextOrSemantics
+    t: TextOrSemantics
+
+
+@semantipy_op(standard_param_type=DiffArgs)
+def diff(s: Semantics | str, t: Semantics | str) -> Semantics:
+    """Compute the difference between two semantic objects."""
     raise NotImplementedError()

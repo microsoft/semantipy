@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Callable, Protocol, Dict, Any, TYPE_CHECKING, overload, Generic, TypeVar
 from typing_extensions import Self, ParamSpec
 
-from semantipy.semantics import Semantics, Guard, Guards, Exemplar, Exemplars
+from semantipy.semantics import Semantics, Exemplar
 
 if TYPE_CHECKING:
     from semantipy._impls.base import BaseExecutionPlan
@@ -15,11 +15,12 @@ if TYPE_CHECKING:
 
 ParamSpecType = ParamSpec("ParamSpecType")
 ReturnType = TypeVar("ReturnType")
+CanoParamType = TypeVar("CanoParamType")
 
 
-class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
+class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnType]):
 
-    def __init__(self, func: Callable, preprocessor: Callable[..., dict] | None = None):
+    def __init__(self, func: Callable, preprocessor: Callable[..., CanoParamType]):
         self.func = func
         self.preprocessor = preprocessor
 
@@ -37,12 +38,9 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
         # TODO: use context to implement this
         return implementation
 
-    def compile(self, *args, **kwargs) -> BaseExecutionPlan:
+    def compile(self, *args, **kwargs) -> BaseExecutionPlan:  # type: ignore
         # bind the arguments to the function
-        if self.preprocessor is not None:
-            arguments = self.preprocessor(self.func, *args, **kwargs)
-        else:
-            arguments = _bind_arguments(self.func, args, kwargs)
+        arguments = self.preprocessor(self.func, *args, **kwargs)
         dispatcher = Dispatcher(self.identifier, arguments)
         if not self._contexts:
             return dispatcher.dispatch()
@@ -53,7 +51,7 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
             with context(*self._contexts):
                 return dispatcher.dispatch()
 
-    def fork(self) -> SemanticOperator[ParamSpecType, ReturnType]:
+    def fork(self) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
         op = SemanticOperator(self.func, self.preprocessor)
         op._contexts = self._contexts.copy()
         if self._identifier is not None:
@@ -62,34 +60,15 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
             op._identifier = self
         return op
 
-    def context(self, ctx: Semantics) -> SemanticOperator[ParamSpecType, ReturnType]:
+    def context(self, ctx: Semantics) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
         """Attach the operator with context. It's NOT in-place."""
         op = self.fork()
         op._contexts.append(ctx)
         return op
 
-    def guard(
-        self,
-        input: Dict[str, Any],
-        expected: Dict[str, Any] | None = None,
-        checker: Callable[[Any, Guard], bool] | None = None,
-    ) -> SemanticOperator[ParamSpecType, ReturnType]:
-        guard = Guard(input=input, expected=expected, checker=checker)
-        op = self.fork()
-        if len(op._contexts) > 0 and isinstance(op._contexts[-1], Guards):
-            op._contexts[-1].append(guard)
-        else:
-            op._contexts.append(Guards([guard]))
-        return op
-
-    def exemplar(self, input: Any, output: Any) -> SemanticOperator[ParamSpecType, ReturnType]:
+    def exemplar(self, input: Semantics, output: Semantics) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
         exemplar = Exemplar(input=input, output=output)
-        op = self.fork()
-        if len(op._contexts) > 0 and isinstance(op._contexts[-1], Exemplars):
-            op._contexts[-1].append(exemplar)
-        else:
-            op._contexts.append(Exemplars([exemplar]))
-        return op
+        return self.context(exemplar)
 
     def __call__(self, *args, **kwargs):  # type: ignore
         plan = self.compile(*args, **kwargs)
@@ -132,17 +111,49 @@ class SupportsSemanticFunction(Protocol):
 
 
 @overload
-def semantipy_op(func: Callable[ParamSpecType, ReturnType]) -> SemanticOperator[ParamSpecType, ReturnType]: ...
+def semantipy_op(func: Callable[ParamSpecType, ReturnType]) -> SemanticOperator[ParamSpecType, Any, ReturnType]: ...
 
 
 @overload
 def semantipy_op(
-    *, preprocessor: Callable[..., dict] | None = None
-) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, ReturnType]]: ...
+    *, preprocessor: Callable[..., CanoParamType] | None = None
+) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, CanoParamType, ReturnType]]: ...
 
 
-def semantipy_op(func=None, *, preprocessor=None) -> Any:
-    """Wrap a function for dispatch with the __semantic_function__ protocol."""
+@overload
+def semantipy_op(
+    *, standard_param_type: type[CanoParamType]
+) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, CanoParamType, ReturnType]]: ...
+
+
+
+def semantipy_op(func=None, *, preprocessor=None, standard_param_type=None) -> Any:
+    """Wrap a function for dispatch with the __semantic_function__ protocol.
+
+    It can be used with `@semantipy_op` or `@semantipy_op(preprocessor=...)`.
+
+    In case it's used with a specified preprocessor or canonicalize type (but not both),
+    the preprocessor will be used to preprocess the arguments before dispatching.
+    The implementation will receive the object returned by the preprocessor.
+    If no preprocessor is specified, the arguments will be passed as a dict.
+
+    """
+
+    if standard_param_type is not None:
+        if preprocessor is not None:
+            raise ValueError("standard_param_type and preprocessor cannot be used together.")
+
+        def _preprocessor_from_standard_param_type(func, *args, **kwargs):
+            func_signature = inspect.signature(func)
+            bound_arguments = func_signature.bind(*args, **kwargs)
+            return standard_param_type(**bound_arguments.arguments)
+        preprocessor = _preprocessor_from_standard_param_type
+
+    elif preprocessor is None:
+        def _preprocessor_default(func, *args, **kwargs):
+            func_signature = inspect.signature(func)
+            return func_signature.bind(*args, **kwargs).arguments
+        preprocessor = _preprocessor_default
 
     def decorator(func):
         op = SemanticOperator(func, preprocessor)
@@ -150,6 +161,7 @@ def semantipy_op(func=None, *, preprocessor=None) -> Any:
 
     if func is not None:
         return decorator(func)
+
     return decorator
 
 
@@ -273,68 +285,3 @@ class Dispatcher:
             return type(error)(error.args[0] + append_message, *error.args[1:])
         except Exception:
             return error
-
-
-def full_name(obj):
-    return f"{obj.__module__}.{obj.__qualname__}"
-
-
-def _bind_arguments(func, args, kwargs) -> dict:
-    """This is to formulate the arguments as a dictionary."""
-
-    # Match arguments with given arguments, so that we can use keyword arguments as much as possible.
-    # Mutators don't like positional arguments. Positional arguments might not supply enough information.
-
-    # get arguments passed to a function, and save it as a dict
-    func_signature = inspect.signature(func)
-    bound_arguments = func_signature.bind(*args, **kwargs)
-    return dict(bound_arguments.arguments)
-
-    # insp_parameters = inspect.signature(func).parameters
-    # argname_list = list(insp_parameters.keys())
-    # positional_args = []
-    # keyword_args = {}
-
-    # # According to https://docs.python.org/3/library/inspect.html#inspect.Parameter, there are five kinds of parameters
-    # # in Python. We only try to handle POSITIONAL_ONLY and POSITIONAL_OR_KEYWORD here.
-
-    # # Example:
-    # # For foo(a, b, *c, **d), a and b and c should be kept.
-    # # For foo(a, b, /, d), a and b should be kept.
-
-    # for i, value in enumerate(args):
-    #     if i >= len(argname_list):
-    #         raise ValueError(f"{func} receives extra argument: {value}.")
-
-    #     argname = argname_list[i]
-    #     if insp_parameters[argname].kind == inspect.Parameter.POSITIONAL_ONLY:
-    #         # positional only. have to be kept.
-    #         positional_args.append(value)
-
-    #     elif insp_parameters[argname].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-    #         # this should be the most common case
-    #         keyword_args[argname] = value
-
-    #     elif insp_parameters[argname].kind == inspect.Parameter.VAR_POSITIONAL:
-    #         # Any previous preprocessing might be wrong. Clean them all.
-    #         # Any parameters that appear before a VAR_POSITIONAL should be kept positional.
-    #         # Otherwise, VAR_POSITIONAL might not work.
-    #         # For the cases I've tested, any parameters that appear after a VAR_POSITIONAL are considered keyword only.
-    #         # But, if args is not long enough for VAR_POSITIONAL to be encountered, they should be handled by other if-branches.
-    #         positional_args = args
-    #         keyword_args = {}
-    #         break
-
-    #     else:
-    #         # kind has to be one of `KEYWORD_ONLY` and `VAR_KEYWORD`
-    #         raise ValueError(
-    #             f"{func} receives positional argument: {value}, but the parameter type is found to be keyword only."
-    #         )
-
-    # # use kwargs to override
-    # keyword_args.update(kwargs)
-
-    # if positional_args:
-    #     raise ValueError(f"Positional arguments unable to be parsed: {positional_args}")
-
-    # return keyword_args
