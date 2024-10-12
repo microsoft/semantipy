@@ -8,7 +8,6 @@ __all__ = [
     "SupportsSemanticFunction",
 ]
 
-import inspect
 import functools
 import textwrap
 from collections import defaultdict
@@ -24,12 +23,17 @@ if TYPE_CHECKING:
 
 ParamSpecType = ParamSpec("ParamSpecType")
 ReturnType = TypeVar("ReturnType")
-CanoParamType = TypeVar("CanoParamType")
 
 
-class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnType]):
+class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
+    """A semantic operator is a callable object that can be dispatched to backends for execution.
+    
+    When operator is called, the arguments will be first preprocessed by the preprocessor.
+    The interface of the preprocessor is `preprocessor(operator_self, *args, **kwargs) -> SemanticOperationRequest`.
+    The request payload will then be sent to backends for execution.
+    """
 
-    def __init__(self, func: Callable, preprocessor: Callable[..., CanoParamType]):
+    def __init__(self, func: Callable, preprocessor: Callable[..., SemanticOperationRequest]):
         self.func = func
         self.preprocessor = preprocessor
 
@@ -47,10 +51,12 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnTy
         # TODO: use context to implement this
         return implementation
 
+    def preprocess(self, *args, **kwargs) -> SemanticOperationRequest:
+        return self.preprocessor(self.identifier, *args, **kwargs)
+
     def compile(self, *args, **kwargs) -> BaseExecutionPlan:  # type: ignore
-        # bind the arguments to the function
-        arguments = self.preprocessor(self.func, *args, **kwargs)
-        dispatcher = Dispatcher(self.identifier, arguments)
+        arguments = self.preprocess(*args, **kwargs)
+        dispatcher = Dispatcher(arguments)
         if not self._contexts:
             return dispatcher.dispatch()
         else:
@@ -60,7 +66,7 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnTy
             with context(*self._contexts):
                 return dispatcher.dispatch()
 
-    def fork(self) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
+    def fork(self) -> SemanticOperator[ParamSpecType, ReturnType]:
         op = SemanticOperator(self.func, self.preprocessor)
         op._contexts = self._contexts.copy()
         if self._identifier is not None:
@@ -69,13 +75,13 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnTy
             op._identifier = self
         return op
 
-    def context(self, ctx: Semantics) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
+    def context(self, ctx: Semantics) -> SemanticOperator[ParamSpecType, ReturnType]:
         """Attach the operator with context. It's NOT in-place."""
         op = self.fork()
         op._contexts.append(ctx)
         return op
 
-    def exemplar(self, input: Semantics, output: Semantics) -> SemanticOperator[ParamSpecType, CanoParamType, ReturnType]:
+    def exemplar(self, input: Semantics, output: Semantics) -> SemanticOperator[ParamSpecType, ReturnType]:
         exemplar = Exemplar(input=input, output=output)
         return self.context(exemplar)
 
@@ -93,25 +99,59 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnTy
         return f"<operator {self.func.__module__}.{self.func.__name__}>"
 
 
+def _default_preprocessor(operator_self: SemanticOperator, *args, **kwargs) -> SemanticOperationRequest:
+    # Dummy preprocessor that simply binds the arguments following the orders from args to kwargs.
+    all_operands = list(args) + list(kwargs.values())
+    if len(all_operands) == 0:
+        raise ValueError("No operands provided for the operator")
+    elif len(all_operands) == 1:
+        return SemanticOperationRequest(operator=operator_self, operand=all_operands[0])
+    elif len(all_operands) == 2:
+        return SemanticOperationRequest(operator=operator_self, operand=all_operands[0], guest_operand=all_operands[1])
+    else:
+        return SemanticOperationRequest(operator=operator_self, operand=all_operands[0], guest_operand=all_operands[1], other_operands=all_operands[2:])
+
+
 class SemanticOperationRequest(SemanticModel):
     """All calls of semantic operators are finally converted into a request payload.
     
     In the payload, the operator can be either a SemanticOperator object or any Semantics object describing an action.
     Put the primary operand in the `operand` field, the secondary operand in the `guest_operand` field,
     and other operands in the `other_operands` field.
-    In case of indexing operations like `apply` and `select`, the indexing is expected in the `index_operand` field.
+    In case of indexing operations like `apply` and `select`, the indexing is expected in the `index` field.
 
     The return type is optional, but can be used to hint the backend on the expected return type.
     Some operators imply that an iterable of the same type is returned,
     in which case the iterable should not explicitly be specified in the return type,
     but implied by the operator itself.
+
+    Altogether, the request can be expressed in the form of ::
+
+        return_val: return_type = operand[index].operator(guest_operand, *other_operands)
+
+    That is the general form of all semantic operations supported currently.
+
+    The reason to put all the semantic operation calls into one form of request are in two folds:
+
+    1. We can leverage the type casting and elevation provided by pydantic to ensure the "semantic"-typing of the arguments.
+       String will be automatically casted to Text, and other types can be validated.
+    2. Implementations do not have to worry about wild arguments in dictionary,
+       nor do the frontends need to define one argument specification for each operator type.
     """
-    operator: Union[SemanticOperator, Semantics]
+    operator: Union[Text, SemanticOperator, Semantics]
     operand: Union[Text, Semantics]
     guest_operand: Union[Text, Semantics] | None = Field(default=None)
-    index_operand: Union[Text, Semantics] | None = Field(default=None)
+    index: Union[Text, Semantics] | None = Field(default=None)
     other_operands: List[Union[Text, Semantics]] = Field(default_factory=list)
     return_type: type | None = Field(default=None)
+    return_iterable: bool = Field(default=False)
+
+    def operands(self) -> List[Semantics]:
+        operands = [self.operand]
+        if self.guest_operand is not None:
+            operands.append(self.guest_operand)
+        operands.extend(self.other_operands)
+        return operands
 
 
 class SupportsSemanticFunction(Protocol):
@@ -128,8 +168,7 @@ class SupportsSemanticFunction(Protocol):
     @classmethod
     def __semantic_function__(
         cls,
-        func: Callable,
-        kwargs: dict,
+        request: SemanticOperationRequest,
         dispatcher: Dispatcher | None = None,
         plan: BaseExecutionPlan | None = None,
     ) -> BaseExecutionPlan: ...
@@ -141,49 +180,28 @@ class SupportsSemanticFunction(Protocol):
 
 
 @overload
-def semantipy_op(func: Callable[ParamSpecType, ReturnType]) -> SemanticOperator[ParamSpecType, Any, ReturnType]: ...
+def semantipy_op(func: Callable[ParamSpecType, ReturnType]) -> SemanticOperator[ParamSpecType, ReturnType]: ...
 
 
 @overload
 def semantipy_op(
-    *, preprocessor: Callable[..., CanoParamType] | None = None
-) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, CanoParamType, ReturnType]]: ...
+    *, preprocessor: Callable[..., SemanticOperationRequest] | None = None
+) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, ReturnType]]: ...
 
 
-@overload
-def semantipy_op(
-    *, standard_param_type: type[CanoParamType]
-) -> Callable[[Callable[ParamSpecType, ReturnType]], SemanticOperator[ParamSpecType, CanoParamType, ReturnType]]: ...
-
-
-
-def semantipy_op(func=None, *, preprocessor=None, standard_param_type=None) -> Any:
+def semantipy_op(func=None, *, preprocessor=None) -> Any:
     """Wrap a function for dispatch with the __semantic_function__ protocol.
 
     It can be used with `@semantipy_op` or `@semantipy_op(preprocessor=...)`.
 
-    In case it's used with a specified preprocessor or canonicalize type (but not both),
+    In case it's used with a specified preprocessor,
     the preprocessor will be used to preprocess the arguments before dispatching.
-    The implementation will receive the object returned by the preprocessor.
-    If no preprocessor is specified, the arguments will be passed as a dict.
-
+    The preprocessor is expected to return a `SemanticOperationRequest` object.
+    The implementation will receive the backend object returned by the preprocessor.
+    If no preprocessor is specified, the arguments will be parsed with a default dummy preprocessor.
     """
-
-    if standard_param_type is not None:
-        if preprocessor is not None:
-            raise ValueError("standard_param_type and preprocessor cannot be used together.")
-
-        def _preprocessor_from_standard_param_type(func, *args, **kwargs):
-            func_signature = inspect.signature(func)
-            bound_arguments = func_signature.bind(*args, **kwargs)
-            return standard_param_type(**bound_arguments.arguments)
-        preprocessor = _preprocessor_from_standard_param_type
-
-    elif preprocessor is None:
-        def _preprocessor_default(func, *args, **kwargs):
-            func_signature = inspect.signature(func)
-            return func_signature.bind(*args, **kwargs).arguments
-        preprocessor = _preprocessor_default
+    if preprocessor is None:
+        preprocessor = _default_preprocessor
 
     def decorator(func):
         op = SemanticOperator(func, preprocessor)
@@ -197,9 +215,8 @@ def semantipy_op(func=None, *, preprocessor=None, standard_param_type=None) -> A
 
 class Dispatcher:
 
-    def __init__(self, func, args):
-        self.func = func
-        self.args = args
+    def __init__(self, request: SemanticOperationRequest):
+        self.request = request
 
         self.handlers: list[type[SupportsSemanticFunction]] = []
 
@@ -259,7 +276,7 @@ class Dispatcher:
 
             try:
                 dispatch_logs.append(f"handler {handler.__name__} invoked")
-                candidate_plan = handler.__semantic_function__(self.func, self.args, self, plan)
+                candidate_plan = handler.__semantic_function__(self.request, self, plan)
 
                 if candidate_plan is NotImplemented:
                     # Returns not implemented is considered BackendNotImplemented
@@ -280,7 +297,7 @@ class Dispatcher:
                     dispatch_logs[-1] += ", but raises not implemented"
 
             except Exception as error:
-                message = " [while dispatching {!r}]\n{}".format(self.func, self._render_dispatch_log(dispatch_logs))
+                message = " [while dispatching {!r}]\n{}".format(self.request.operator, self._render_dispatch_log(dispatch_logs))
                 new_error = self._attempt_augmented_error_message(error, message)
                 raise new_error.with_traceback(error.__traceback__) from None
 
@@ -289,7 +306,7 @@ class Dispatcher:
                 break
 
         if plan is None:
-            msg = "No implementation found for {}\n{}".format(self.func, self._render_dispatch_log(dispatch_logs))
+            msg = "No implementation found for {}\n{}".format(self.request.operator, self._render_dispatch_log(dispatch_logs))
             raise NotImplementedError(msg)
 
         return plan
@@ -301,7 +318,7 @@ class Dispatcher:
         except Exception as error:
             # Make sure the dispatch log is included in the traceback
             message = " [while executing the generated plan for {!r}]\n{}".format(
-                self.func, self._render_dispatch_log(plan.list_signs())
+                self.request.operator, self._render_dispatch_log(plan.list_signs())
             )
             new_error = self._attempt_augmented_error_message(error, message)
             raise new_error.with_traceback(error.__traceback__) from None
