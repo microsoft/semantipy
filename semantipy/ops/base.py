@@ -18,7 +18,7 @@ from pydantic import Field
 from semantipy.semantics import Semantics, Exemplar, Text, SemanticModel
 
 if TYPE_CHECKING:
-    from semantipy._impls.base import BaseExecutionPlan
+    from semantipy.impls.base import BaseExecutionPlan
 
 
 ParamSpecType = ParamSpec("ParamSpecType")
@@ -221,7 +221,7 @@ class Dispatcher:
         self.handlers: list[type[SupportsSemanticFunction]] = []
 
     def _init_handler_list(self) -> None:
-        from semantipy._impls.base import list_backends, BaseBackend, BaseExecutionPlan
+        from semantipy.impls.base import list_backends, BaseBackend, BaseExecutionPlan
 
         for backend in reversed(list_backends()):
             # Assume the later backends are more specific and should be executed first.
@@ -264,7 +264,7 @@ class Dispatcher:
         self.handlers = sorted_nodes
 
     def dispatch(self) -> BaseExecutionPlan:
-        from semantipy._impls.base import BackendNotImplemented, DummyPlan
+        from semantipy.impls.base import BackendNotImplemented, DummyPlan
 
         self._init_handler_list()
 

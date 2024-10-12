@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Type, Callable, TypeVar
 
 from semantipy.semantics import Semantics
-from semantipy.ops.base import Dispatcher, SupportsSemanticFunction
+from semantipy.ops.base import Dispatcher, SupportsSemanticFunction, SemanticOperationRequest
 
 
 _registered_backends: list[Type[BaseBackend]] = []
@@ -41,8 +41,7 @@ class BaseBackend:
     @classmethod
     def __semantic_function__(
         cls,
-        func: Callable,
-        kwargs: dict,
+        request: SemanticOperationRequest,
         dispatcher: Dispatcher | None = None,
         plan: BaseExecutionPlan | None = None,
     ) -> BaseExecutionPlan:
@@ -61,92 +60,6 @@ BackendType = TypeVar("BackendType", bound=BaseBackend)
 
 def register(backend: Type[BackendType]) -> Type[BackendType]:
     return backend.register()
-
-
-class ReflectionBackend(BaseBackend):
-    """Base class for backends that use reflection to implement the operations."""
-
-    @classmethod
-    def __semantic_function__(
-        cls,
-        func: Callable,
-        kwargs: dict,
-        dispatcher: Dispatcher | None = None,
-        plan: BaseExecutionPlan | None = None,
-    ) -> BaseExecutionPlan:
-        func_name = func.__name__
-        if not hasattr(cls, func_name):
-            raise BackendNotImplemented(f"Backend {cls.__name__} does not implement {func_name}")
-        return LambdaExecutionPlan(lambda: getattr(cls, func_name)(**kwargs))
-
-
-@register
-class TypedBackend(BaseBackend):
-    """Backend that redirects the request to the definition of types."""
-
-    @classmethod
-    def __semantic_function__(
-        cls,
-        func: Callable,
-        kwargs: dict,
-        dispatcher: Dispatcher | None = None,
-        plan: BaseExecutionPlan | None = None,
-    ) -> BaseExecutionPlan:
-        if dispatcher is not None:
-            prepended_handlers = []
-            for value in kwargs.values():
-                if isinstance(value, Semantics) and type(value) not in prepended_handlers:
-                    prepended_handlers.append(type(value))
-            for i, handler in enumerate(prepended_handlers):
-                dispatcher.handlers.insert(i, handler)
-
-        if plan is not None:
-            return plan
-        return DummyPlan(signer=cls.__name__)
-
-
-@register
-class RendererBackend(BaseBackend):
-    """Backend that uses a renderer to implement the operations."""
-
-    @classmethod
-    def __semantic_function__(
-        cls,
-        func: Callable,
-        kwargs: dict,
-        dispatcher: Dispatcher | None = None,
-        plan: BaseExecutionPlan | None = None,
-    ) -> BaseExecutionPlan:
-        from semantipy.ops import cast
-
-        if func != cast:
-            return NotImplemented
-        
-        if plan is not None:
-            # Never modify the existing plan
-            return plan
-
-        args = (kwargs["s"],)
-        if "target_type" in kwargs:
-            args += (kwargs["target_type"],)
-
-        if kwargs.get("renderer") is not None:
-            renderers = [kwargs["renderer"]]
-        else:
-            if kwargs["target_type"] is None:
-                raise ValueError("target_type is required for rendering when renderer is not specified")
-
-            # unify this queue with the global queue
-            from semantipy.renderer import list_renderers
-            renderers = list_renderers(type(kwargs["s"]), kwargs["target_type"])
-
-        for renderer in renderers:
-            plan = renderer().render_plan(*args)
-            plan.sign(cls.__name__, f"rendered by {renderer.__name__}")
-            if plan is not NotImplemented:
-                return plan
-
-        return NotImplemented
 
 
 class BaseExecutionPlan:
@@ -189,6 +102,7 @@ class BaseExecutionPlan:
 
 
 class LambdaExecutionPlan(BaseExecutionPlan):
+    """A plan that executes an arbitrary function."""
 
     def __init__(self, lambda_func: Callable):
         self.lambda_func = lambda_func

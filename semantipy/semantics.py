@@ -18,7 +18,7 @@ from pydantic import GetCoreSchemaHandler, BaseModel
 from pydantic_core import CoreSchema, core_schema
 
 if TYPE_CHECKING:
-    from semantipy.ops.base import Dispatcher, BaseExecutionPlan, SupportsSemanticFunction
+    from semantipy.ops.base import Dispatcher, BaseExecutionPlan, SupportsSemanticFunction, SemanticOperationRequest
 
 
 class Semantics:
@@ -31,8 +31,7 @@ class Semantics:
     @classmethod
     def __semantic_function__(
         cls,
-        func: Callable,
-        kwargs: dict,
+        request: SemanticOperationRequest,
         dispatcher: Dispatcher | None = None,
         plan: BaseExecutionPlan | None = None,
     ) -> BaseExecutionPlan:

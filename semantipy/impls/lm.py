@@ -15,15 +15,8 @@ from semantipy.semantics import (
     SemanticModel,
     Text,
     Exemplar,
-    Exemplars,
-    ChatLogs,
     ChatMessage,
-    Strategy,
-    Guards,
-    Guard,
-    RoleContext,
 )
-from semantipy.renderer import Renderer
 
 from jinja2 import Template as JinjaTemplate
 
