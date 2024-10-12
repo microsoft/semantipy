@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+__all__ = [
+    "SemanticOperator",
+    "semantipy_op",
+    "SemanticOperationRequest",
+    "Dispatcher",
+    "SupportsSemanticFunction",
+]
+
 import inspect
 import functools
 import textwrap
 from collections import defaultdict
-from typing import Callable, Protocol, Dict, Any, TYPE_CHECKING, overload, Generic, TypeVar
+from typing import Callable, Protocol, Dict, List, Union, Any, TYPE_CHECKING, overload, Generic, TypeVar
 from typing_extensions import Self, ParamSpec
 
-from semantipy.semantics import Semantics, Exemplar
+from pydantic import Field
+from semantipy.semantics import Semantics, Exemplar, Text, SemanticModel
 
 if TYPE_CHECKING:
     from semantipy._impls.base import BaseExecutionPlan
@@ -82,6 +91,27 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, CanoParamType, ReturnTy
 
     def __repr__(self) -> str:
         return f"<operator {self.func.__module__}.{self.func.__name__}>"
+
+
+class SemanticOperationRequest(SemanticModel):
+    """All calls of semantic operators are finally converted into a request payload.
+    
+    In the payload, the operator can be either a SemanticOperator object or any Semantics object describing an action.
+    Put the primary operand in the `operand` field, the secondary operand in the `guest_operand` field,
+    and other operands in the `other_operands` field.
+    In case of indexing operations like `apply` and `select`, the indexing is expected in the `index_operand` field.
+
+    The return type is optional, but can be used to hint the backend on the expected return type.
+    Some operators imply that an iterable of the same type is returned,
+    in which case the iterable should not explicitly be specified in the return type,
+    but implied by the operator itself.
+    """
+    operator: Union[SemanticOperator, Semantics]
+    operand: Union[Text, Semantics]
+    guest_operand: Union[Text, Semantics] | None = Field(default=None)
+    index_operand: Union[Text, Semantics] | None = Field(default=None)
+    other_operands: List[Union[Text, Semantics]] = Field(default_factory=list)
+    return_type: type | None = Field(default=None)
 
 
 class SupportsSemanticFunction(Protocol):
