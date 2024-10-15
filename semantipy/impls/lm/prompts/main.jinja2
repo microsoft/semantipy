@@ -1,0 +1,65 @@
+<|semantipy_chat_system|>
+{% if task %}
+{{ task | trim }}
+
+{% endif -%}
+
+{% if instructions %}
+### Step-by-step Task Instructions ###
+
+{% for inst in instructions %}
+({{ loop.index }}) {{ inst | trim }}
+{% endfor %}
+
+{% endif -%}
+
+{% if formatting %}
+### Formatting Instructions ###
+
+{{ formatting | trim }}
+
+{% endif -%}
+
+{% if exemplars %}
+{% if not user_exemplars %}
+{% set user_exemplars = exemplars %}
+{% set exemplars = None %}
+{% else %}
+### Exemplars ###
+
+{% for exemplar in exemplars %}
+**Exemplar {{ loop.index }}:**
+Human: {{ exemplar.input | trim }}
+AI: {{ exemplar.output | trim }}
+
+{% endfor %}
+{% endif -%}
+{% endif -%}
+
+{% if user_exemplars %}
+{% if exemplars %}
+The exemplars above are provided by the system as examples of how to complete the task.
+You can use them as a reference when completing the task.
+{% endif -%}
+{% for exemplar in user_exemplars %}
+<|semantipy_chat_human|>
+{{ exemplar.input }}
+<|semantipy_chat_ai|>
+{{ exemplar.output }}
+{% endfor %}
+{% endif -%}
+
+<|semantipy_chat_human|>
+{% if user_contexts %}
+### Context ###
+
+Please consider the following information when completing the user task below:
+
+{% for user_context in user_contexts %}
+- {{ user_context | trim }}
+{% endfor %}
+
+### User Task ###
+
+{% endif %}
+{{ user_input | trim }}

@@ -3,18 +3,16 @@ from __future__ import annotations
 __all__ = [
     "Semantics",
     "Text",
-    "TextOrSemantics",
     "SemanticList",
     "SemanticDict",
     "SemanticModel",
     "Exemplar",
-    "ChatMessage",
 ]
 
 from typing import Callable, TYPE_CHECKING, Any, Union, Literal
 from typing_extensions import Self
 
-from pydantic import GetCoreSchemaHandler, BaseModel
+from pydantic import GetCoreSchemaHandler, BaseModel, ConfigDict
 from pydantic_core import CoreSchema, core_schema
 
 if TYPE_CHECKING:
@@ -86,24 +84,7 @@ class SemanticModel(Semantics, BaseModel):
 class Exemplar(SemanticModel):
     """An example input-output pair."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     input: Union[Text, Semantics]
     output: Union[Text, Semantics]
-
-
-class ChatMessage(SemanticModel):
-    """A message in a chat."""
-
-    role: Literal["system", "human", "ai"]
-    content: Text
-
-    def to_langchain(self):
-        from langchain.schema import SystemMessage, HumanMessage, AIMessage
-
-        if self.role == "system":
-            return SystemMessage(content=self.content)
-        elif self.role == "human":
-            return HumanMessage(content=self.content)
-        elif self.role == "ai":
-            return AIMessage(content=self.content)
-        else:
-            raise ValueError(f"Unsupported role: {self.role}")

@@ -14,7 +14,7 @@ from collections import defaultdict
 from typing import Callable, Protocol, Dict, List, Union, Any, TYPE_CHECKING, overload, Generic, TypeVar
 from typing_extensions import Self, ParamSpec
 
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from semantipy.semantics import Semantics, Exemplar, Text, SemanticModel
 
 if TYPE_CHECKING:
@@ -138,6 +138,9 @@ class SemanticOperationRequest(SemanticModel):
     2. Implementations do not have to worry about wild arguments in dictionary,
        nor do the frontends need to define one argument specification for each operator type.
     """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     operator: Union[Text, SemanticOperator, Semantics]
     operand: Union[Text, Semantics]
     guest_operand: Union[Text, Semantics] | None = Field(default=None)
