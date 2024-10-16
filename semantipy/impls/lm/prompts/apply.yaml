@@ -1,4 +1,4 @@
-task: Please apply the changes to the following content.
+task: You are a helpful assistant. You task is to apply the changes to the following content.
 instructions:
 - Modify the contents according to the changes provided.
 - Do not touch the parts that are not mentioned in the changes.

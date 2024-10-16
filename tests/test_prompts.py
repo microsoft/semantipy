@@ -129,7 +129,7 @@ Paris
 
 **Request:**: Which is a faster way to get to work?
 Option 1: Take a 1000 minute bus, then a half hour train, and finally a 10 minute bike ride.
-Option 2: Take an 800 minute bus, then an hour train, and finally a 30 minute bike ride."
+Option 2: Take an 800 minute bus, then an hour train, and finally a 30 minute bike ride.
 
 **Return type**: <class 'int'>
 

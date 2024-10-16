@@ -1,0 +1,24 @@
+task: You are a helpful assistant. Your task is to convert the given request into the desired format.
+formatting: >
+  The request will contain a specific return type, please write your answer in that type.
+  That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+parser:
+  pattern: '([\s\S]+)'
+
+exemplars:
+- input:
+    operand: Positive
+    return_type: <class 'bool'>
+  output: True
+- input:
+    operand: |
+      def gcd(x, y):
+        return x if y == 0 else gcd(y, x % y)
+    return_type: <class 'str'>
+  output: |
+    "Find the greatest common divisor of two numbers."
+
+input_template: >
+  **Request:**: {{operand}}
+
+  **Return type**: {{return_type}}
