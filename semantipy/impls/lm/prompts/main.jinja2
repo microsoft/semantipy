@@ -29,8 +29,10 @@
 
 {% for exemplar in exemplars %}
 **Exemplar {{ loop.index }}:**
-Human: {{ exemplar.input | trim }}
-AI: {{ exemplar.output | trim }}
+**Human:**
+{{ exemplar.input | trim }}
+**Assistant:**
+{{ exemplar.output | trim }}
 
 {% endfor %}
 {% endif -%}

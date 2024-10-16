@@ -51,11 +51,11 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
         # TODO: use context to implement this
         return implementation
 
-    def preprocess(self, *args, **kwargs) -> SemanticOperationRequest:
+    def bind(self, *args, **kwargs) -> SemanticOperationRequest:
         return self.preprocessor(self.identifier, *args, **kwargs)
 
     def compile(self, *args, **kwargs) -> BaseExecutionPlan:  # type: ignore
-        arguments = self.preprocess(*args, **kwargs)
+        arguments = self.bind(*args, **kwargs)
         dispatcher = Dispatcher(arguments)
         if not self._contexts:
             return dispatcher.dispatch()
@@ -146,8 +146,10 @@ class SemanticOperationRequest(SemanticModel):
     guest_operand: Union[Text, Semantics] | None = Field(default=None)
     index: Union[Text, Semantics] | None = Field(default=None)
     other_operands: List[Union[Text, Semantics]] = Field(default_factory=list)
-    return_type: type | None = Field(default=None)
+    return_type: type | Text | Semantics | None = Field(default=None)
+    # return type should always be type except the cases of exemplars
     return_iterable: bool = Field(default=False)
+    contexts: List[Union[Text, Semantics]] = Field(default_factory=list)
 
     def operands(self) -> List[Semantics]:
         operands = [self.operand]
