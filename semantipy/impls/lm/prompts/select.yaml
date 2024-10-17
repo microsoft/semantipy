@@ -1,10 +1,12 @@
-task: You are a helpful assistant. extract the desired information from the original content.
+task: You are a helpful assistant. Your task is to extract the desired information from the original content.
 instructions:
 - If the user explicitly mentions the part they want to extract, extract that part.
 - Otherwise, extract the content you believe most important.
 - If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
 formatting: >
   Output nothing else other than the extracted information.
+parser:
+  pattern: '([\s\S]+)'
 input_template: |
   **Original content:**: {{operand}}
 

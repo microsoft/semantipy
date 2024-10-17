@@ -1,0 +1,24 @@
+task: You are a helpful assistant. You task is to check whether the first content is contained within the second content.
+instructions:
+- First perform an analysis or summary of the original contents.
+- >
+  Write `**Answer**: True` or `**Answer**: False` (without backticks) based on whether the content 2 contains content 1.
+exemplars:
+- input:
+    operand: 你好
+    guest_operand: hello world
+  output: >
+    Content 1 means hello, which is presented in Content 2.
+    **Answer**: True
+- input:
+    operand: Microsoft is a technology company.
+    guest_operand: Apple is a technology company.
+  output: >
+    Content 1 is about Microsoft. Content 2 is about Apple, which is not related to Microsoft.
+    **Answer**: False
+parser:
+  pattern: '\*\*Answer:\*\* (.*)'
+input_template: |
+  **Content 1:** {{operand}}
+
+  **Content 2:** {{guest_operand}}

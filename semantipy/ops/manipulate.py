@@ -106,6 +106,8 @@ def _select_preprocessor(
             return_iterable=return_iterable,
         )
     elif isinstance(selector_or_return_type, type):
+        if return_iterable:
+            raise ValueError("Selector cannot be a return type when return_iterable is True.")
         return SemanticOperationRequest(
             operator=func, operand=s, return_type=selector_or_return_type, return_iterable=return_iterable
         )
@@ -141,10 +143,6 @@ def select(s, selector_or_return_type, return_type=None, /) -> Semantics:
 
 
 @overload
-def select_iter(s: Semantics | str, return_type: type[SemanticTypeA]) -> Iterable[SemanticTypeA]: ...
-
-
-@overload
 def select_iter(s: Semantics | str, selector: Semantics | str) -> Iterable[Semantics]: ...
 
 
@@ -155,17 +153,13 @@ def select_iter(
 
 
 @semantipy_op(preprocessor=functools.partial(_select_preprocessor, return_iterable=True))
-def select_iter(s, selector_or_return_type, return_type=None, /) -> Iterable[Semantics]:
+def select_iter(s, selector, return_type=None, /) -> Iterable[Semantics]:
     """
     Selects and iterates over elements based on a selector or return type.
 
     Similar to `select`, but returns an iterable of elements instead of a single element.
     """
     raise NotImplementedError()
-
-
-@overload
-def split(s: Semantics | str, return_type: type[SemanticTypeA]) -> Iterable[SemanticTypeA]: ...
 
 
 @overload
@@ -179,7 +173,7 @@ def split(
 
 
 @semantipy_op(preprocessor=functools.partial(_select_preprocessor, return_iterable=True))
-def split(s, selector_or_return_type, return_type=None, /) -> Iterable[Semantics]:
+def split(s, selector, return_type=None, /) -> Iterable[Semantics]:
     """Split the input into multiple elements based on the provided selector or return type.
 
     This function is similar to `select_iter`, but the selector is used to match the cutted parts rather than the chosen parts.

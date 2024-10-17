@@ -26,6 +26,7 @@ class RegexOutputParser(SemanticModel):
 
     pattern: str
     return_type: Optional[type] = Field(default=None)
+    multi: bool = Field(default=False)
 
     def to_return_type(self, value: Any) -> Any:
         if self.return_type is None:
@@ -35,10 +36,14 @@ class RegexOutputParser(SemanticModel):
         return self.return_type(value)  # type: ignore
 
     def parse(self, output: Text) -> Any:
-        match = re.search(self.pattern, output)
-        if match is None:
-            raise ValueError(f"Failed to parse the output with the pattern `{self.pattern}`: {output}")
-        return self.to_return_type(match.group(1))
+        all_matches = []
+        for match in re.finditer(self.pattern, output):
+            if match is None:
+                raise ValueError(f"Failed to parse the output with the pattern `{self.pattern}`: {output}")
+            if not self.multi:
+                return self.to_return_type(match.group(1))
+            all_matches.append(self.to_return_type(match.group(1)))
+        return all_matches
 
 
 class SemantipyPromptTemplate(SemanticModel):
@@ -71,7 +76,9 @@ class SemantipyPromptTemplate(SemanticModel):
                 "user_exemplars": [ctx for ctx in request.contexts if isinstance(ctx, Exemplar)],
                 "user_contexts": [ctx for ctx in request.contexts if not isinstance(ctx, Exemplar)],
                 "parser": (
-                    self.parser.model_copy(update={"return_type": request.return_type})
+                    self.parser.model_copy(
+                        update={"return_type": request.return_type, "multi": request.return_iterable}
+                    )
                     if self.parser is not None
                     else None
                 ),
@@ -89,17 +96,27 @@ class SemantipyPromptTemplate(SemanticModel):
     def render(self) -> List[ChatMessage]:
         if self.user_input is None:
             raise ValueError("The user input is required to render the prompt.")
-        copy = self.model_copy(update={
-            "exemplars": [
-                Exemplar(input=self.render_exemplar_or_user_input(exemplar.input), output=exemplar.output)
-                for exemplar in self.exemplars
-            ] if self.exemplars is not None else None,
-            "user_exemplars": [
-                Exemplar(input=self.render_exemplar_or_user_input(exemplar.input), output=exemplar.output)
-                for exemplar in self.user_exemplars
-            ] if self.user_exemplars is not None else None,
-            "user_input": self.render_exemplar_or_user_input(self.user_input),
-        })
+        copy = self.model_copy(
+            update={
+                "exemplars": (
+                    [
+                        Exemplar(input=self.render_exemplar_or_user_input(exemplar.input), output=exemplar.output)
+                        for exemplar in self.exemplars
+                    ]
+                    if self.exemplars is not None
+                    else None
+                ),
+                "user_exemplars": (
+                    [
+                        Exemplar(input=self.render_exemplar_or_user_input(exemplar.input), output=exemplar.output)
+                        for exemplar in self.user_exemplars
+                    ]
+                    if self.user_exemplars is not None
+                    else None
+                ),
+                "user_input": self.render_exemplar_or_user_input(self.user_input),
+            }
+        )
         string = get_template("main.jinja2").render(copy.model_dump())
         regex = re.compile(
             r"<\|semantipy_chat_(?P<role>system|human|ai)\|>\s*(?P<content>.*?)(?=\s*<\|semantipy_chat_\w+\|>|$)",

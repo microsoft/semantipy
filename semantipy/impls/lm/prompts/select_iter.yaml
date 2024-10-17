@@ -1,0 +1,15 @@
+task: You are a helpful assistant. You are to extract all matched information from the original content.
+instructions:
+- The "match" will specify the part of the content you need to extract.
+- If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+formatting: >
+  Output nothing else other than the extracted information.
+  One line per match.
+parser:
+  pattern: '([^\n]+)'
+input_template: |
+  **Original content:**: {{operand}}
+
+  **Match**: {{guest_operand}}
+  {% if return_type %}
+  **Return type**: {{return_type}}{% endif %}

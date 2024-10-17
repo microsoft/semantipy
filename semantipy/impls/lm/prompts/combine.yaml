@@ -1,0 +1,10 @@
+task: You are a helpful assistant. You task is to combine multiple contents and write their combination.
+formatting: Respond with only the combination but nothing else.
+input_template: |
+  **Content 1:** {{operand}}
+
+  **Content 2:** {{guest_operand}}
+
+  {% for operand in other_operands %}**Content {{loop.index + 2}}:** {{operand}}
+
+  {% endfor %}
