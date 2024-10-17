@@ -10,7 +10,7 @@ from jinja2 import Template, Environment, PackageLoader
 from pydantic import Field, ConfigDict
 
 from langchain.prompts import ChatPromptTemplate
-from langchain.schema import ChatMessage
+from langchain.schema import BaseMessage
 
 from semantipy.ops.base import SemanticOperationRequest
 from semantipy.semantics import Semantics, SemanticModel, Text, Exemplar
@@ -93,7 +93,7 @@ class SemantipyPromptTemplate(SemanticModel):
         else:
             raise ValueError(f"Failed to render the input: {request}")
 
-    def render(self) -> List[ChatMessage]:
+    def render(self) -> List[BaseMessage]:
         if self.user_input is None:
             raise ValueError("The user input is required to render the prompt.")
         copy = self.model_copy(
@@ -140,7 +140,9 @@ class SemantipyPromptTemplate(SemanticModel):
         return cls(**config)
 
     @classmethod
-    def from_file(cls, filename: str) -> SemantipyPromptTemplate:
-        path = Path(__file__).parent / "prompts" / filename
-        with path.open() as file:
+    def from_file(cls, filename: Path | str) -> SemantipyPromptTemplate:
+        # Treat the filename as a simple name if it is a string.
+        if isinstance(filename, str):
+            filename = Path(__file__).parent / "prompts" / filename
+        with filename.open() as file:
             return cls.from_config(yaml.safe_load(file))
