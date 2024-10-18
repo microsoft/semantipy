@@ -10,7 +10,7 @@ from jinja2 import Template, Environment, PackageLoader
 from pydantic import Field, ConfigDict
 
 from langchain.prompts import ChatPromptTemplate
-from langchain.schema import BaseMessage, ChatMessage
+from langchain.schema import BaseMessage, ChatMessage, SystemMessage, HumanMessage, AIMessage
 
 from semantipy.ops.base import SemanticOperationRequest
 from semantipy.semantics import Semantics, SemanticModel, Text, Exemplar
@@ -125,8 +125,18 @@ class SemantipyPromptTemplate(SemanticModel):
             re.DOTALL,
         )
         return [
-            ChatMessage(role=match.group("role"), content=match.group("content")) for match in regex.finditer(string)
+            self._create_message(match.group("role"), match.group("content")) for match in regex.finditer(string)
         ]
+    
+    def _create_message(self, role: str, content: str) -> BaseMessage:
+        if role == "system":
+            return SystemMessage(content=content)
+        elif role == "human":
+            return HumanMessage(content=content)
+        elif role == "ai":
+            return AIMessage(content=content)
+        else:
+            raise TypeError(f"Unknown role: {role}")
 
     @classmethod
     def from_config(cls, config: dict) -> SemantipyPromptTemplate:
