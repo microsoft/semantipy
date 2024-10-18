@@ -6,6 +6,6 @@ formatting: >
   Respond in the same format as the original content, with the changes applied.
   Do not include anything other than the modified content in your response.
 input_template: |
-  **Original content:**: {{operand}}
+  **Original content:** {{operand}}
 
-  **Changes**: {{guest_operand}}
+  **Changes:** {{guest_operand}}

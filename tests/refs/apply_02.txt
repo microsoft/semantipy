@@ -11,9 +11,9 @@ Respond in the same format as the original content, with the changes applied. Do
 
 ---
 
-**Original content:**: content 1
+**Original content:** content 1
 
-**Changes**: modification 1
+**Changes:** modification 1
 
 ---
 
@@ -29,6 +29,6 @@ Please consider the following information when completing the user task below:
 
 ### User Task ###
 
-**Original content:**: some content
+**Original content:** some content
 
-**Changes**: some modification
+**Changes:** some modification

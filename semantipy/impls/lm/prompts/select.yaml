@@ -8,8 +8,8 @@ formatting: >
 parser:
   pattern: '([\s\S]+)'
 input_template: |
-  **Original content:**: {{operand}}
+  **Original content:** {{operand}}
 
-  {% if guest_operand %}**Desired part**: {{guest_operand}}
+  {% if guest_operand %}**Desired part:** {{guest_operand}}
   
-  {% endif %}{% if return_type %}**Return type**: {{return_type}}{% endif %}
+  {% endif %}{% if return_type %}**Return type:** {{return_type}}{% endif %}

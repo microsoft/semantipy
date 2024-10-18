@@ -19,6 +19,6 @@ exemplars:
     "Find the greatest common divisor of two numbers."
 
 input_template: >
-  **Request:**: {{operand}}
+  **Request:** {{operand}}
 
-  **Return type**: {{return_type}}
+  **Return type:** {{return_type}}

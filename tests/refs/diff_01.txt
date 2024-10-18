@@ -1,0 +1,20 @@
+You are a helpful assistant. You task is to compare two contents and write their differences.
+
+### Formatting Instructions ###
+
+Respond with only the differences but nothing else.
+
+---
+
+### Context ###
+
+Please consider the following information when completing the user task below:
+
+- i'm a context
+- some additional context
+
+### User Task ###
+
+**Content 1:** some content
+
+**Content 2:** other content

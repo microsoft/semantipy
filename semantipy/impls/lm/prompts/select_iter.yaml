@@ -8,8 +8,8 @@ formatting: >
 parser:
   pattern: '([^\n]+)'
 input_template: |
-  **Original content:**: {{operand}}
+  **Original content:** {{operand}}
 
-  **Match**: {{guest_operand}}
+  **Match:** {{guest_operand}}
   {% if return_type %}
-  **Return type**: {{return_type}}{% endif %}
+  **Return type:** {{return_type}}{% endif %}

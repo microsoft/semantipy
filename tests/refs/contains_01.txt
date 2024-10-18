@@ -1,0 +1,32 @@
+You are a helpful assistant. You task is to check whether the first content is contained within the second content.
+
+### Step-by-step Task Instructions ###
+
+(1) First perform an analysis or summary of the original contents.
+(2) Write `**Answer**: True` or `**Answer**: False` (without backticks) based on whether the content 2 contains content 1.
+
+---
+
+**Content 1:** 你好
+
+**Content 2:** hello world
+
+---
+
+Content 1 means hello, which is presented in Content 2. **Answer**: True
+
+---
+
+**Content 1:** Microsoft is a technology company.
+
+**Content 2:** Apple is a technology company.
+
+---
+
+Content 1 is about Microsoft. Content 2 is about Apple, which is not related to Microsoft. **Answer**: False
+
+---
+
+**Content 1:** some content
+
+**Content 2:** some container

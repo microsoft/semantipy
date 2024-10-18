@@ -6,6 +6,8 @@ from semantipy.semantics import Exemplar
 from semantipy.ops import *
 from semantipy.impls.lm.template import SemantipyPromptTemplate
 
+WRITE_MODE = False
+
 
 def _diff(a: str, b: str):
     diff = difflib.ndiff(a.splitlines(keepends=True), b.splitlines(keepends=True))
@@ -13,9 +15,13 @@ def _diff(a: str, b: str):
 
 
 def _diff_with_ref(a: str, b_file: str):
-    with Path(__file__).parent / "refs" / b_file as f:
-        b = f.read_text()
-    return _diff(a, b)
+    if not WRITE_MODE:
+        b = (Path(__file__).parent / "refs" / b_file).read_text()
+        return _diff(a, b)
+
+    else:
+        # Write mode
+        (Path(__file__).parent / "refs" / b_file).write_text(a)
 
 
 def test_main_jinja2():
@@ -116,6 +122,106 @@ def test_yamls():
             logical_binary.bind("one of the operator is true", "0", "positive")
         ),
         "universal.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "cast.yaml",
+            cast.bind("123.0", int)
+        ),
+        "cast_01.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "diff.yaml",
+            SemanticOperationRequest(
+                operator=diff,
+                operand="some content",
+                guest_operand="other content",
+                contexts=[
+                    "i'm a context",
+                    "some additional context",
+                ]
+            )
+        ),
+        "diff_01.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "select.yaml",
+            select.bind("some content", "some selection")
+        ),
+        "select_01.txt"
+    )
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "select.yaml",
+            select.bind("some content", "some selection", int)
+        ),
+        "select_02.txt"
+    )
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "select.yaml",
+            select.bind("some content", int)
+        ),
+        "select_03.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "select_iter.yaml",
+            select_iter.bind("some content", "some selection")
+        ),
+        "select_iter_01.txt"
+    )
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "select_iter.yaml",
+            select_iter.bind("some content", "some selection", int)
+        ),
+        "select_iter_02.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "split.yaml",
+            split.bind("some content", "some delimiter")
+        ),
+        "split_01.txt"
+    )
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "split.yaml",
+            split.bind("some content", "some delimiter", int)
+        ),
+        "split_02.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "combine.yaml",
+            combine.bind("some content", "some other content", "more content")
+        ),
+        "combine_01.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "equals.yaml",
+            equals.bind("some content", "some other content")
+        ),
+        "equals_01.txt"
+    )
+
+    assert not _diff_with_ref(
+        _generate_prompt_to_compare(
+            "contains.yaml",
+            contains.bind("some content", "some container")
+        ),
+        "contains_01.txt"
     )
 
 

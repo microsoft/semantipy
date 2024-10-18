@@ -1,0 +1,17 @@
+You are a helpful assistant. Your task is to extract the desired information from the original content.
+
+### Step-by-step Task Instructions ###
+
+(1) If the user explicitly mentions the part they want to extract, extract that part.
+(2) Otherwise, extract the content you believe most important.
+(3) If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+
+### Formatting Instructions ###
+
+Output nothing else other than the extracted information.
+
+---
+
+**Original content:** some content
+
+**Return type:** <class 'int'>

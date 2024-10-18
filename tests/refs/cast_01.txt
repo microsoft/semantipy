@@ -1,0 +1,30 @@
+You are a helpful assistant. Your task is to convert the given request into the desired format.
+
+### Formatting Instructions ###
+
+The request will contain a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+
+---
+
+**Request:** Positive
+**Return type:** <class 'bool'>
+
+---
+
+True
+
+---
+
+**Request:** def gcd(x, y):
+  return x if y == 0 else gcd(y, x % y)
+
+**Return type:** <class 'str'>
+
+---
+
+"Find the greatest common divisor of two numbers."
+
+---
+
+**Request:** 123.0
+**Return type:** <class 'int'>

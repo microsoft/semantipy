@@ -16,15 +16,15 @@ formatting: >
 parser:
   pattern: '([\s\S]+)'
 input_template: |
-  **Operator:**: {{operator}}
+  **Operator:** {{operator}}
 
-  **Operand:**: {{operand}}
+  **Operand:** {{operand}}
   {% if index %}
-  **Index:**: {{index}}
+  **Index:** {{index}}
   {% endif %}{% if guest_operand %}
-  **Guest operand:**: {{guest_operand}}
+  **Guest operand:** {{guest_operand}}
   {% endif %}{% if other_operands %}
-  **Other operands:**: {{other_operands}}
+  **Other operands:** {{other_operands}}
   {% endif %}{% if return_type %}
-  **Return type**: {{return_type}}
+  **Return type:** {{return_type}}
   {% endif %}

@@ -41,6 +41,6 @@ exemplars:
     **Answer:** False
 
 input_template: >
-  **Request:**: {{operand}}
+  **Request:** {{operand}}
 
-  {% if return_type %}**Return type**: {{return_type}}{% endif %}
+  {% if return_type %}**Return type:** {{return_type}}{% endif %}

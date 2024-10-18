@@ -13,10 +13,10 @@ Output nothing else other than the result value.
 
 ---
 
-**Operator:**: one of the operator is true
+**Operator:** one of the operator is true
 
-**Operand:**: 0
+**Operand:** 0
 
-**Guest operand:**: positive
+**Guest operand:** positive
 
-**Return type**: <class 'bool'>
+**Return type:** <class 'bool'>
