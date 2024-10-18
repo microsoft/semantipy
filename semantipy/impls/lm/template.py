@@ -43,6 +43,8 @@ class RegexOutputParser(SemanticModel):
             if not self.multi:
                 return self.to_return_type(match.group(1))
             all_matches.append(self.to_return_type(match.group(1)))
+        if not self.multi:
+            raise ValueError(f"Failed to parse the output with the pattern `{self.pattern}`: {output}")
         return all_matches
 
 

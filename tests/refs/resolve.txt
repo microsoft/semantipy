@@ -2,13 +2,13 @@ You are a helpful assistant. You may see a request, an expression or a question.
 
 ### Step-by-step Task Instructions ###
 
-(1) For simple questions, please write the answer directly without any additional texts in the response.
+(1) For simple questions, please write the answer directly after **Answer:**.
 (2) For complex questions (e.g., mathematical problems or reasoning tasks), you should think about it step by step first. Then write the answer after `**Answer:**`.
 (3) If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
 
 ### Formatting Instructions ###
 
-For simple questions, output the answer with nothing else. For complex questions, output the answer after `**Answer:**`.
+For simple questions, output the answer directly after **Answer:**. For complex questions, output the answer after thinking, reasoning and `**Answer:**`.
 
 ---
 
@@ -16,7 +16,7 @@ For simple questions, output the answer with nothing else. For complex questions
 
 ---
 
-Paris
+**Answer:** Paris
 
 ---
 

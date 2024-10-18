@@ -1,20 +1,21 @@
 task: You are a helpful assistant. You may see a request, an expression or a question. You will resolve it with the best of your knowledge.
 instructions:
-- For simple questions, please write the answer directly without any additional texts in the response.
+- For simple questions, please write the answer directly after **Answer:**.
 - >
   For complex questions (e.g., mathematical problems or reasoning tasks), you should think about it step by step first.
   Then write the answer after `**Answer:**`.
 - If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
 formatting: >
-  For simple questions, output the answer with nothing else.
-  For complex questions, output the answer after `**Answer:**`.
+  For simple questions, output the answer directly after **Answer:**.
+  For complex questions, output the answer after thinking, reasoning and `**Answer:**`.
 parser:
-  pattern: '\*\*Answer:\*\* (.*)'
+  pattern: '\*\*Answer:\*\* ([\s\S]+)'
 
 exemplars:
 - input:
     operand: What is the capital of France?
-  output: Paris
+  output: >
+    **Answer:** Paris
 - input:
     operand: |
       Which is a faster way to get to work?

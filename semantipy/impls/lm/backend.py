@@ -21,6 +21,14 @@ def _get_or_load_global_lm() -> BaseChatModel:
     return _lm
 
 
+def configure_lm(lm: BaseChatModel) -> None:
+    """An approach to configure the language model globally."""
+    global _lm
+    if not isinstance(lm, BaseChatModel):
+        raise TypeError('lm must be an instance of BaseChatModel')
+    _lm = lm
+
+
 class LMExecutionPlan(BaseExecutionPlan, SemanticModel):
     prompt: SemantipyPromptTemplate
 
