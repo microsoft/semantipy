@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-
+from langchain.schema import BaseMessage
 from langchain.chat_models.base import BaseChatModel
 from semantipy.impls.base import BaseExecutionPlan, register, BaseBackend
 from semantipy.ops.base import SemanticOperationRequest, Dispatcher
@@ -29,10 +29,12 @@ class LMExecutionPlan(BaseExecutionPlan, SemanticModel):
             return Text(output)
         return self.prompt.parser.parse(output)
 
+    def _prompt(self) -> list[BaseMessage]:
+        return self.prompt.render()
+
     def execute(self) -> Any:
-        chat_logs = self.prompt.render()
         llm = _get_or_load_global_lm()
-        response = llm(chat_logs)
+        response = llm(self._prompt())
         if response is None or response.content is None:
             raise ValueError("No response from the language model.")
         return self._parse_output(response.content)

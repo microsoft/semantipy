@@ -1,0 +1,30 @@
+<|semantipy_chat_system|>
+Sum two numbers
+
+### Step-by-step Task Instructions ###
+
+(1) Sum two numbers
+(2) Provide the sum of two numbers
+
+### Formatting Instructions ###
+
+Return the number with nothing else.
+
+<|semantipy_chat_human|>
+1 2
+<|semantipy_chat_ai|>
+3
+<|semantipy_chat_human|>
+3 4
+<|semantipy_chat_ai|>
+7
+<|semantipy_chat_human|>
+### Context ###
+
+Please consider the following information when completing the user task below:
+
+- I want to sum two numbers.
+
+### User Task ###
+
+5 6

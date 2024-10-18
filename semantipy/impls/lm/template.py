@@ -10,7 +10,7 @@ from jinja2 import Template, Environment, PackageLoader
 from pydantic import Field, ConfigDict
 
 from langchain.prompts import ChatPromptTemplate
-from langchain.schema import BaseMessage
+from langchain.schema import BaseMessage, ChatMessage
 
 from semantipy.ops.base import SemanticOperationRequest
 from semantipy.semantics import Semantics, SemanticModel, Text, Exemplar
