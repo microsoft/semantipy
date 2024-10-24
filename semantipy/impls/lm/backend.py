@@ -1,3 +1,9 @@
+__all__ = [
+    "configure_lm",
+    "LMExecutionPlan",
+    "LMBackend",
+]
+
 from pathlib import Path
 from typing import Any
 
@@ -42,7 +48,7 @@ class LMExecutionPlan(BaseExecutionPlan, SemanticModel):
 
     def execute(self) -> Any:
         llm = _get_or_load_global_lm()
-        response = llm(self._prompt())
+        response = llm.invoke(self._prompt())
         if response is None or response.content is None:
             raise ValueError("No response from the language model.")
         return self._parse_output(response.content)

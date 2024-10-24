@@ -3,7 +3,7 @@ You are a helpful assistant. You task is to check whether the first content is c
 ### Step-by-step Task Instructions ###
 
 (1) First perform an analysis or summary of the original contents.
-(2) Write `**Answer**: True` or `**Answer**: False` (without backticks) based on whether the content 2 contains content 1.
+(2) Write `**Answer:** True` or `**Answer:** False` (without backticks) based on whether the content 2 contains content 1.
 
 ---
 
@@ -13,7 +13,7 @@ You are a helpful assistant. You task is to check whether the first content is c
 
 ---
 
-Content 1 means hello, which is presented in Content 2. **Answer**: True
+Content 1 means hello, which is presented in Content 2. **Answer:** True
 
 ---
 
@@ -23,7 +23,7 @@ Content 1 means hello, which is presented in Content 2. **Answer**: True
 
 ---
 
-Content 1 is about Microsoft. Content 2 is about Apple, which is not related to Microsoft. **Answer**: False
+Content 1 is about Microsoft. Content 2 is about Apple, which is not related to Microsoft. **Answer:** False
 
 ---
 

@@ -3,7 +3,7 @@ You are a helpful assistant. You task is to compare two contents and check if th
 ### Step-by-step Task Instructions ###
 
 (1) First perform an analysis or summary of the original contents.
-(2) Write `**Answer**: True` or `**Answer**: False` (without backticks) based on whether the contents are semantically equivalent or not.
+(2) Write `**Answer:** True` or `**Answer:** False` (without backticks) based on whether the contents are semantically equivalent or not.
 
 ---
 
@@ -13,7 +13,7 @@ You are a helpful assistant. You task is to compare two contents and check if th
 
 ---
 
-Content 1 is written in Chinese and Content 2 is written in English, but both mean "hello". **Answer**: True
+Content 1 is written in Chinese and Content 2 is written in English, but both mean "hello". **Answer:** True
 
 ---
 
@@ -23,7 +23,7 @@ Content 1 is written in Chinese and Content 2 is written in English, but both me
 
 ---
 
-Content 1 and Content 2 are both describing Python as an interesting programming language. **Answer**: True
+Content 1 and Content 2 are both describing Python as an interesting programming language. **Answer:** True
 
 ---
 

@@ -22,7 +22,7 @@ def context_exit(ctx: Semantics):
 
 
 @contextmanager
-def context(*ctx: Semantics):
+def context(*ctx: Semantics | str):
     # use request object to cast the input parameters
     casted_ctx = SemanticOperationRequest(
         operator=context_enter, operand=ctx[0], other_operands=list(ctx[1:])

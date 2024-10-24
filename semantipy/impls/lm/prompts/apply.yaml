@@ -7,5 +7,7 @@ formatting: >
   Do not include anything other than the modified content in your response.
 input_template: |
   **Original content:** {{operand}}
-
+  {% if index %}
+  **Where to make the changes:** {{index}}
+  {% endif %}
   **Changes:** {{guest_operand}}
