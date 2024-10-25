@@ -27,7 +27,7 @@ ReturnType = TypeVar("ReturnType")
 
 class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
     """A semantic operator is a callable object that can be dispatched to backends for execution.
-    
+
     When operator is called, the arguments will be first preprocessed by the preprocessor.
     The interface of the preprocessor is `preprocessor(operator_self, *args, **kwargs) -> SemanticOperationRequest`.
     The request payload will then be sent to backends for execution.
@@ -91,9 +91,9 @@ class SemanticOperator(Semantics, Generic[ParamSpecType, ReturnType]):
 
     if TYPE_CHECKING:
 
-        def compile(self, *args: ParamSpecType.args, **kwargs: ParamSpecType.kwargs) -> BaseExecutionPlan: ...
+        def compile(self, *args: ParamSpecType.args, **kwargs: ParamSpecType.kwargs) -> BaseExecutionPlan: ...  # noqa
 
-        def __call__(self, *args: ParamSpecType.args, **kwargs: ParamSpecType.kwargs) -> ReturnType: ...
+        def __call__(self, *args: ParamSpecType.args, **kwargs: ParamSpecType.kwargs) -> ReturnType: ...  # noqa
 
     def __repr__(self) -> str:
         return f"<operator {self.func.__module__}.{self.func.__name__}>"
@@ -109,12 +109,17 @@ def _default_preprocessor(operator_self: SemanticOperator, *args, **kwargs) -> S
     elif len(all_operands) == 2:
         return SemanticOperationRequest(operator=operator_self, operand=all_operands[0], guest_operand=all_operands[1])
     else:
-        return SemanticOperationRequest(operator=operator_self, operand=all_operands[0], guest_operand=all_operands[1], other_operands=all_operands[2:])
+        return SemanticOperationRequest(
+            operator=operator_self,
+            operand=all_operands[0],
+            guest_operand=all_operands[1],
+            other_operands=all_operands[2:],
+        )
 
 
 class SemanticOperationRequest(SemanticModel):
     """All calls of semantic operators are finally converted into a request payload.
-    
+
     In the payload, the operator can be either a SemanticOperator object or any Semantics object describing an action.
     Put the primary operand in the `operand` field, the secondary operand in the `guest_operand` field,
     and other operands in the `other_operands` field.
@@ -302,7 +307,9 @@ class Dispatcher:
                     dispatch_logs[-1] += ", but raises not implemented"
 
             except Exception as error:
-                message = " [while dispatching {!r}]\n{}".format(self.request.operator, self._render_dispatch_log(dispatch_logs))
+                message = " [while dispatching {!r}]\n{}".format(
+                    self.request.operator, self._render_dispatch_log(dispatch_logs)
+                )
                 new_error = self._attempt_augmented_error_message(error, message)
                 raise new_error.with_traceback(error.__traceback__) from None
 
@@ -311,7 +318,9 @@ class Dispatcher:
                 break
 
         if plan is None:
-            msg = "No implementation found for {}\n{}".format(self.request.operator, self._render_dispatch_log(dispatch_logs))
+            msg = "No implementation found for {}\n{}".format(
+                self.request.operator, self._render_dispatch_log(dispatch_logs)
+            )
             raise NotImplementedError(msg)
 
         return plan
@@ -329,7 +338,7 @@ class Dispatcher:
             raise new_error.with_traceback(error.__traceback__) from None
 
     def _render_dispatch_log(self, dispatch_logs: list[str]) -> str:
-        return "Full dispatch log:\n" + "\n".join([textwrap.indent(l, "  ") for l in dispatch_logs])
+        return "Full dispatch log:\n" + "\n".join([textwrap.indent(log, "  ") for log in dispatch_logs])
 
     def _attempt_augmented_error_message(self, error, append_message):
         """Attempt to recreate an error with an appended message."""

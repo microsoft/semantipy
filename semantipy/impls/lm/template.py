@@ -129,10 +129,8 @@ class SemantipyPromptTemplate(SemanticModel):
             r"<\|semantipy_chat_(?P<role>system|human|ai)\|>\s*(?P<content>.*?)(?=\s*<\|semantipy_chat_\w+\|>|$)",
             re.DOTALL,
         )
-        return [
-            self._create_message(match.group("role"), match.group("content")) for match in regex.finditer(string)
-        ]
-    
+        return [self._create_message(match.group("role"), match.group("content")) for match in regex.finditer(string)]
+
     def _create_message(self, role: str, content: str) -> BaseMessage:
         if role == "system":
             return SystemMessage(content=content)

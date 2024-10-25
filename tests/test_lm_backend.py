@@ -6,7 +6,7 @@ from semantipy.semantics import Text
 from _llm import llm
 
 
-def test_lm_backend(llm):
+def test_lm_backend(llm):  # noqa: F811
     configure_lm(llm)
 
     plan = LMBackend.__semantic_function__(
@@ -17,7 +17,7 @@ def test_lm_backend(llm):
     assert plan.execute() == "TestLmBackend"
 
 
-def test_lm_backend_anonymous(llm):
+def test_lm_backend_anonymous(llm):  # noqa: F811
     configure_lm(llm)
 
     plan = LMBackend.__semantic_function__(
@@ -31,21 +31,15 @@ def test_lm_backend_anonymous(llm):
     assert plan.execute() == "AppleBananaCherry"
 
 
-def test_contexts(llm):
+def test_contexts(llm):  # noqa: F811
     configure_lm(llm)
 
     context = Text("China has a population of 2 billion in 2050.")
-    plan = LMBackend.__semantic_function__(
-        request=SemanticOperationRequest(operator=context_enter, operand=context)
-    )
+    plan = LMBackend.__semantic_function__(request=SemanticOperationRequest(operator=context_enter, operand=context))
     assert plan.execute() is None
-    plan = LMBackend.__semantic_function__(
-        request=resolve.bind("What's the population of China in 2050?")
-    )
+    plan = LMBackend.__semantic_function__(request=resolve.bind("What's the population of China in 2050?"))
     assert isinstance(plan, LMExecutionPlan)
     assert "China has a population of 2 billion in 2050" in plan.lm_input()[-1].content
     assert plan.execute() == "2 billion"
-    plan = LMBackend.__semantic_function__(
-        request=SemanticOperationRequest(operator=context_exit, operand=context)
-    )
+    plan = LMBackend.__semantic_function__(request=SemanticOperationRequest(operator=context_exit, operand=context))
     assert plan.execute() is None

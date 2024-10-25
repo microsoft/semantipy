@@ -6,6 +6,7 @@ import dotenv
 import pytest
 from langchain_openai import AzureChatOpenAI, ChatOpenAI, AzureOpenAI, OpenAI
 
+
 def load_env():
     # In case of a local environment, load the .env file
     if os.path.exists("tests/.env"):

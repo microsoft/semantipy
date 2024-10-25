@@ -8,7 +8,7 @@ from _llm import llm
 
 
 @pytest.fixture(autouse=True, scope="module")
-def setup(llm):
+def setup(llm):  # noqa: F811
     configure_lm(llm)
 
 
@@ -19,13 +19,11 @@ def test_apply():
 
 def test_resolve():
     assert resolve("What's the capital of Russia?") == "Moscow"
-    assert resolve("Would a pear sink in water?", bool) == False
+    assert resolve("Would a pear sink in water?", bool) is False
 
 
 def test_cast():
-    assert "loutre de mer" in cast(
-        Exemplar(input=Text("see otter"), output=Text("loutre de mer")), Text
-    )
+    assert "loutre de mer" in cast(Exemplar(input=Text("see otter"), output=Text("loutre de mer")), Text)
 
 
 def test_diff():
@@ -88,13 +86,13 @@ def test_equals():
 
 
 def test_logical_unary():
-    assert logical_unary("check whether the statement is the truth", "Sun rises from the west.") == False
-    assert logical_unary("check whether the statement is the truth", "Sun rises from the east.") == True
+    assert logical_unary("check whether the statement is the truth", "Sun rises from the west.") is False
+    assert logical_unary("check whether the statement is the truth", "Sun rises from the east.") is True
 
 
 def test_logical_binary():
-    assert logical_binary("Check whether statements have overlaps.", "Apple is a fruit.", "Banana is a fruit.") == True
+    assert logical_binary("Check whether statements have overlaps.", "Apple is a fruit.", "Banana is a fruit.") is True
     assert (
         logical_binary("Check whether statements have overlaps.", "Apple is a fruit.", "Microsoft is a company.")
-        == False
+        is False
     )

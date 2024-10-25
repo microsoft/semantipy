@@ -20,11 +20,13 @@ from .template import SemantipyPromptTemplate
 
 _lm: BaseChatModel | None = None
 
+
 def _get_or_load_global_lm() -> BaseChatModel:
     global _lm
 
     if _lm is None:
         from langchain_openai import ChatOpenAI
+
         _lm = ChatOpenAI(model="gpt-4o", temperature=0.0)
 
     return _lm
@@ -34,7 +36,7 @@ def configure_lm(lm: BaseChatModel) -> None:
     """An approach to configure the language model globally."""
     global _lm
     if not isinstance(lm, BaseChatModel):
-        raise TypeError('lm must be an instance of BaseChatModel')
+        raise TypeError("lm must be an instance of BaseChatModel")
     _lm = lm
 
 

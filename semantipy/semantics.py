@@ -58,7 +58,6 @@ class Text(str, Semantics):
         return core_schema.no_info_after_validator_function(cls, handler(str))
 
 
-
 class SemanticList(list, Semantics):
     """Semantics that are represented with a list."""
 
