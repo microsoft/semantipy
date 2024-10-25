@@ -14,3 +14,13 @@ input_template: |
   **Match:** {{guest_operand}}
   {% if return_type %}
   **Return type:** {{return_type}}{% endif %}
+exemplars:
+- input:
+    operand: "Sports; Dance,Music,Art; Cooking."
+    guest_operand: Any punctuations
+  output: |
+    Sports
+    Dance
+    Music
+    Art
+    Cooking

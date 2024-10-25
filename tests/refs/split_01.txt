@@ -12,6 +12,20 @@ Output nothing else other than the splitted parts. One line per part.
 
 ---
 
+**Original content:** Sports; Dance,Music,Art; Cooking.
+
+**Match:** Any punctuations
+
+---
+
+Sports
+Dance
+Music
+Art
+Cooking
+
+---
+
 **Original content:** some content
 
 **Match:** some delimiter
