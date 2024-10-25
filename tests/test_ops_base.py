@@ -1,9 +1,26 @@
 import re
 import pytest
 
-from semantipy.impls.base import BaseBackend, BaseExecutionPlan, register_backend, unregister_backend
+import semantipy.impls.base
+from semantipy.impls.base import (
+    BaseBackend,
+    BaseExecutionPlan,
+    register_backend,
+    unregister_backend,
+)
 from semantipy.ops.base import Dispatcher, SemanticOperationRequest, semantipy_op
 from semantipy.semantics import Text
+
+
+_registered_backends = semantipy.impls.base._registered_backends.copy()
+
+
+def setup_module():
+    semantipy.impls.base._registered_backends.clear()
+
+
+def teardown_module():
+    semantipy.impls.base._registered_backends.extend(_registered_backends)
 
 
 class DummyPlan(BaseExecutionPlan):

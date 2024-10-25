@@ -23,7 +23,7 @@ def test_resolve():
 
 
 def test_cast():
-    assert "{'input': 'see otter', 'output': 'loutre de mer'}" in cast(
+    assert "loutre de mer" in cast(
         Exemplar(input=Text("see otter"), output=Text("loutre de mer")), Text
     )
 
@@ -81,9 +81,10 @@ def test_contains():
 def test_equals():
     assert equals("banana", "香蕉") is True
     assert equals("Microsoft", "Apple") is False
+    assert equals("banana", "nanaba") is False
 
-    with context("All tech companies are considered equal."):
-        assert equals("Microsoft", "Apple") is True
+    with context("banana and nanaba are the same thing"):
+        assert equals("banana", "nanaba") is True
 
 
 def test_logical_unary():

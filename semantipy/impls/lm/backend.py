@@ -39,22 +39,29 @@ def configure_lm(lm: BaseChatModel) -> None:
 
 
 class LMExecutionPlan(BaseExecutionPlan, SemanticModel):
+    """A plan to execute a language model operation."""
+
     prompt: SemantipyPromptTemplate
 
-    def _parse_output(self, output: Any) -> Any:
+    def parse_output(self, output: Any) -> Any:
         if self.prompt.parser is None:
             return Text(output)
         return self.prompt.parser.parse(output)
 
-    def _prompt(self) -> list[BaseMessage]:
+    def lm_input(self) -> list[BaseMessage]:
+        """Use this method to debug the input to the language model."""
         return self.prompt.render()
 
-    def execute(self) -> Any:
+    def lm_output(self) -> Text:
+        """Use this method to debug the output from the language model."""
         llm = _get_or_load_global_lm()
-        response = llm.invoke(self._prompt())
+        response = llm.invoke(self.lm_input())
         if response is None or response.content is None:
             raise ValueError("No response from the language model.")
-        return self._parse_output(response.content)
+        return Text(response.content)  # type: ignore
+
+    def execute(self) -> Any:
+        return self.parse_output(self.lm_output())
 
 
 _contexts: list[Semantics] = []

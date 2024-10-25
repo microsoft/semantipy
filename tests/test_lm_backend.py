@@ -13,7 +13,7 @@ def test_lm_backend(llm):
         request=apply.bind("test_lm_backend", "Convert to Camel case"),
     )
     assert isinstance(plan, LMExecutionPlan)
-    assert isinstance(plan._prompt(), list)
+    assert isinstance(plan.lm_input(), list)
     assert plan.execute() == "TestLmBackend"
 
 
@@ -27,7 +27,7 @@ def test_lm_backend_anonymous(llm):
         )
     )
     assert isinstance(plan, LMExecutionPlan)
-    assert isinstance(plan._prompt(), list)
+    assert isinstance(plan.lm_input(), list)
     assert plan.execute() == "AppleBananaCherry"
 
 
@@ -42,6 +42,8 @@ def test_contexts(llm):
     plan = LMBackend.__semantic_function__(
         request=resolve.bind("What's the population of China in 2050?")
     )
+    assert isinstance(plan, LMExecutionPlan)
+    assert "China has a population of 2 billion in 2050" in plan.lm_input()[-1].content
     assert plan.execute() == "2 billion"
     plan = LMBackend.__semantic_function__(
         request=SemanticOperationRequest(operator=context_exit, operand=context)
