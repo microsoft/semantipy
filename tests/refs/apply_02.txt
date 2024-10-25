@@ -1,0 +1,34 @@
+You are a helpful assistant. You task is to apply the changes to the following content.
+
+### Step-by-step Task Instructions ###
+
+(1) Modify the contents according to the changes provided.
+(2) Do not touch the parts that are not mentioned in the changes.
+
+### Formatting Instructions ###
+
+Respond in the same format as the original content, with the changes applied. Do not include anything other than the modified content in your response.
+
+---
+
+**Original content:** content 1
+
+**Changes:** modification 1
+
+---
+
+result 1
+
+---
+
+### Context ###
+
+Please consider the following information when completing the user task below:
+
+- some additional context
+
+### User Task ###
+
+**Original content:** some content
+
+**Changes:** some modification

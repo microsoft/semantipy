@@ -1,0 +1,22 @@
+You are a helpful assistant. Your task is to perform a semantic operation based on the given operator and operands.
+
+### Step-by-step Task Instructions ###
+
+(1) The user will specify an operator and one operand, and optionally a guest operand and some other operands. Sometimes there will also be an index operator to specify the index of the operand. The return type specifies the type of the output. Altogether, the operators, operands and return types have the relationship of: return_val: return_type = operand[index].operator(guest_operand, *other_operands)
+(2) If the operator is a unary operator, the guest operand and other operands will be ignored and not provided. If the operator is a binary operator, no other operands will be provided.
+(3) You will perform the operator on the operands and write the return_val directly.
+(4) Please write your answer in the return type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+
+### Formatting Instructions ###
+
+Output nothing else other than the result value.
+
+---
+
+**Operator:** one of the operator is true
+
+**Operand:** 0
+
+**Guest operand:** positive
+
+**Return type:** <class 'bool'>

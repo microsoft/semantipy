@@ -1,0 +1,29 @@
+<|semantipy_chat_system|>
+Sum two numbers
+
+### Formatting Instructions ###
+
+Return the number with nothing else.
+
+### Exemplars ###
+
+**Exemplar 1:**
+**Human:**
+1 2
+**Assistant:**
+3
+
+**Exemplar 2:**
+**Human:**
+3 4
+**Assistant:**
+7
+
+The exemplars above are provided by the system as examples of how to complete the task.
+You can use them as a reference when completing the task.
+<|semantipy_chat_human|>
+5 6
+<|semantipy_chat_ai|>
+11
+<|semantipy_chat_human|>
+7 8

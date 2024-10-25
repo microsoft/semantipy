@@ -1,0 +1,18 @@
+You are a helpful assistant. You are to extract all matched information from the original content.
+
+### Step-by-step Task Instructions ###
+
+(1) The "match" will specify the part of the content you need to extract.
+(2) If the request contains a specific return type, please write your answer in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+
+### Formatting Instructions ###
+
+Output nothing else other than the extracted information. One line per match.
+
+---
+
+**Original content:** some content
+
+**Match:** some selection
+
+**Return type:** <class 'int'>

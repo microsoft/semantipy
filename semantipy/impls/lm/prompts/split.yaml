@@ -1,0 +1,26 @@
+task: You are a helpful assistant. You are to split the original content into multiple parts.
+instructions:
+- The "match" will specify the parts you need to **remove** from the original content.
+- When the parts are removed, the remaining content should be split into multiple parts.
+- If the request contains a specific return type, please convert and write the parts in that type. That means, the answer should be evaluatable to the desired return type with `ast.literal_eval`.
+formatting: >
+  Output nothing else other than the splitted parts.
+  One line per part.
+parser:
+  pattern: '([^\n]+)'
+input_template: |
+  **Original content:** {{operand}}
+
+  **Match:** {{guest_operand}}
+  {% if return_type %}
+  **Return type:** {{return_type}}{% endif %}
+exemplars:
+- input:
+    operand: "Sports; Dance,Music,Art; Cooking."
+    guest_operand: Any punctuations
+  output: |
+    Sports
+    Dance
+    Music
+    Art
+    Cooking

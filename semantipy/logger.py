@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
 
 import colorlog
 
@@ -73,57 +72,3 @@ def add_python_logging_handler(logger: logging.Logger, file: Path | None = None)
     logger.addHandler(handler)
 
     return handler
-
-
-class TuningLogger:
-    """Base class for logging the tuning process."""
-
-    def on_candidate(self, instance: Any) -> None:
-        pass
-
-    def on_feedback(self, instance: Any, feedback: Any) -> None:
-        pass
-
-    def register_on(self, tuner: Tuner) -> None:
-        tuner.register_candidate_callback(self.on_candidate)
-        tuner.register_feedback_callback(self.on_feedback)
-
-
-class ConsoleTuningLogger(TuningLogger):
-    """A logger that logs the progress to the console."""
-
-    def __init__(self) -> None:
-        self.sample_counter = 0
-
-    def on_candidate(self, instance: Any) -> None:
-        self.sample_counter += 1
-        config = _tunable_as_dict(instance)
-        _logger.info("[Sample %d] %r", self.sample_counter, config)
-
-    def on_feedback(self, instance: Any, feedback: Any) -> None:
-        _logger.info(
-            "[Feedback %d] %r: %r",
-            self.sample_counter,
-            _tunable_as_dict(instance),
-            feedback,
-        )
-
-
-class WandbTuningLogger(TuningLogger):
-    """A logger that sends the result to wandb."""
-
-    def __init__(self, project: str) -> None:
-        self.sample_counter = 0
-        self.project = project
-
-    def on_candidate(self, instance: Any) -> None:
-        self.sample_counter += 1
-
-    def on_metric(self, instance: Any, metrics: dict[str, Any]) -> None:
-        import wandb
-
-        # FIXME: this should be moved to on_sample?
-        wandb.init(project=self.project, config=_tunable_as_dict(instance))
-        wandb.log(metrics)
-
-        wandb.finish()  # TODO: mark a instance as failed

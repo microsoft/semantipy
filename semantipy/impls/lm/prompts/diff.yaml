@@ -1,0 +1,6 @@
+task: You are a helpful assistant. You task is to compare two contents and write their differences.
+formatting: Respond with only the differences but nothing else.
+input_template: |
+  **Content 1:** {{operand}}
+
+  **Content 2:** {{guest_operand}}

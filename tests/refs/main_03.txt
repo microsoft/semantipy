@@ -1,0 +1,5 @@
+<|semantipy_chat_system|>
+Sum two numbers
+
+<|semantipy_chat_human|>
+5 6
