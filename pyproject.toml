@@ -29,6 +29,7 @@ py-modules = ["semantipy"]
 dev = [
     "pytest",
     "black",
+    "flake8",
     "sphinx",
     "sphinx-markdown-builder",
 ]

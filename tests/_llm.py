@@ -1,10 +1,8 @@
 import os
-import warnings
-from typing import Literal
 
 import dotenv
 import pytest
-from langchain_openai import AzureChatOpenAI, ChatOpenAI, AzureOpenAI, OpenAI
+from langchain_openai import AzureChatOpenAI
 
 
 def load_env():
@@ -26,5 +24,5 @@ def llm():
         azure_endpoint=os.environ["AZURE_ENDPOINT"],
         api_version="2024-08-01-preview",
         api_key=os.environ["AZURE_API_KEY"],
-        max_retries=10,
+        max_retries=3,
     )
