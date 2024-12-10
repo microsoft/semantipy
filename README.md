@@ -80,6 +80,12 @@ trademarks or logos is subject to and must follow
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
 
+## Responsible AI
+
+This project is evaluated and certified to comply with the Microsoft Responsible AI Standard.
+The team will also monitor and update the repo in the event severe issues, including harms, are found.
+More information can be found in [Responsible AI FAQ](RESPONSIBLE_AI_FAQ).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
