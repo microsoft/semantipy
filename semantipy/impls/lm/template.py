@@ -32,6 +32,7 @@ class RegexOutputParser(SemanticModel):
     pattern: str
     return_type: Optional[type] = Field(default=None)
     multi: bool = Field(default=False)
+    giveup: bool = Field(default=False)  # The parser will return the original output if it fails to parse.
 
     def to_return_type(self, value: Any) -> Any:
         if self.return_type is None:
@@ -49,6 +50,8 @@ class RegexOutputParser(SemanticModel):
                 return self.to_return_type(match.group(1))
             all_matches.append(self.to_return_type(match.group(1)))
         if not self.multi:
+            if self.giveup:
+                return self.to_return_type(output)
             raise ValueError(f"Failed to parse the output with the pattern `{self.pattern}`: {output}")
         return all_matches
 
