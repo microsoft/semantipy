@@ -175,8 +175,7 @@ def test_yaml_parsers():
 
     resolve_parser = SemantipyPromptTemplate.from_file("resolve.yaml").parser
     assert resolve_parser is not None
-    with pytest.raises(ValueError):
-        resolve_parser.parse(Text("What's an apple?"))
+    assert resolve_parser.parse(Text("What's an apple?")) == "What's an apple?"
     assert resolve_parser.parse(Text("What's an apple? **Answer:** 123")) == "123"
     assert resolve_parser.parse(Text("What's an apple? **Answer:** 123\n456")) == "123\n456"
 
