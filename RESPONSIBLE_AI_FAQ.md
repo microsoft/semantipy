@@ -96,4 +96,6 @@ These results indicate low defect rates, suggesting the system is suitable for g
 
 ## How do I provide feedback on Semantipy?
 
-Users can provide feedback directly through the GitHub interface by flagging issues. The team will monitor and update the repository in case severe issues, including harms, are found.
+Users can provide feedback directly through the GitHub interface by flagging issues. The team will monitor and update the repo in the event severe issues, including harms, are found.
+
+We welcome feedback and collaboration from our audience. If you have suggestions, questions, or observe unexpected/offensive behavior in our technology, please contact us at semantipy@microsoft.com. Should the team have reports of undesired behavior or discover issues on their own, this repo will be updated with appropriate mitigations.
